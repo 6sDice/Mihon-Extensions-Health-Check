@@ -26,7 +26,7 @@ def get_live_extension_list():
 
 def sendOneSite(site_list):
     final_list = []
-    for site in site_list[:3]:
+    for site in site_list:
         final_list.append(check_site_status(site))
     return final_list
 
