@@ -17,7 +17,9 @@
                 --error: #ff9800;
             }
             body {
-                font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+                font-family:
+                    -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+                    Helvetica, Arial, sans-serif;
                 background-color: var(--bg-color);
                 color: var(--text-main);
                 margin: 0;
@@ -67,6 +69,224 @@
                 opacity: 0.8;
             }
             /* Active states match your exact badge colors */
-            .filter-btn.active[data-filter="ALL"] { background-color: var(--text-main); color: var(--bg-color); }
-            .filter-btn.active[data-filter="UP"] { background-color: rgba(76, 175, 80, 0.2); color: var(--up); border-color: var(--up); }
-            .filter-btn.active[data-filter="CLOUDFLARE"] { background-color: rgba(0, 188, 212, 0.2); color:
+            .filter-btn.active[data-filter="ALL"] {
+                background-color: var(--text-main);
+                color: var(--bg-color);
+            }
+            .filter-btn.active[data-filter="UP"] {
+                background-color: rgba(76, 175, 80, 0.2);
+                color: var(--up);
+                border-color: var(--up);
+            }
+            .filter-btn.active[data-filter="CLOUDFLARE"] {
+                background-color: rgba(0, 188, 212, 0.2);
+                color: var(--cloudflare);
+                border-color: var(--cloudflare);
+            }
+            .filter-btn.active[data-filter="DOWN"] {
+                background-color: rgba(244, 67, 54, 0.2);
+                color: var(--down);
+                border-color: var(--down);
+            }
+            .filter-btn.active[data-filter="ERROR"] {
+                background-color: rgba(255, 152, 0, 0.2);
+                color: var(--error);
+                border-color: var(--error);
+            }
+            /* -------------------------------- */
+
+            .grid {
+                display: grid;
+                grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+                gap: 15px;
+                width: 100%;
+                max-width: 1200px;
+            }
+            .card {
+                background-color: var(--card-bg);
+                padding: 15px;
+                border-radius: 10px;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+            }
+            .ext-name {
+                font-weight: bold;
+                font-size: 16px;
+            }
+            .ext-url {
+                font-size: 12px;
+                color: var(--text-muted);
+                margin-top: 4px;
+            }
+            .status-badge {
+                padding: 6px 12px;
+                border-radius: 20px;
+                font-size: 12px;
+                font-weight: bold;
+            }
+            .status-UP {
+                background-color: rgba(76, 175, 80, 0.2);
+                color: var(--up);
+                border: 1px solid var(--up);
+            }
+            .status-DOWN {
+                background-color: rgba(244, 67, 54, 0.2);
+                color: var(--down);
+                border: 1px solid var(--down);
+            }
+            .status-CLOUDFLARE {
+                background-color: rgba(0, 188, 212, 0.2);
+                color: var(--cloudflare);
+                border: 1px solid var(--cloudflare);
+            }
+            .status-ERROR {
+                background-color: rgba(255, 152, 0, 0.2);
+                color: var(--error);
+                border: 1px solid var(--error);
+            }
+        </style>
+    </head>
+    <body>
+        <div class="header">
+            <h1>Mihon Extension Status</h1>
+            <p>Live health checks updated every 15 minutes.</p>
+        </div>
+
+        <input
+            type="text"
+            id="searchInput"
+            class="search-bar"
+            placeholder="Search for an extension (e.g., Asura Scans)..."
+        />
+
+        <div class="filter-container">
+            <button class="filter-btn active" data-filter="ALL">All</button>
+            <button class="filter-btn" data-filter="UP">UP</button>
+            <button class="filter-btn" data-filter="CLOUDFLARE">
+                Cloudflare
+            </button>
+            <button class="filter-btn" data-filter="DOWN">DOWN</button>
+            <button class="filter-btn" data-filter="ERROR">Error</button>
+        </div>
+
+        <div class="grid" id="statusGrid"></div>
+
+        <script>
+            let extensionData = [];
+
+            // --- NEW: STATE TRACKING VARIABLES ---
+            let currentSearchTerm = "";
+            let currentStatusFilter = "ALL";
+
+            async function fetchStatus() {
+                try {
+                    const response = await fetch(
+                        "./backend/status.json?t=" + new Date().getTime(),
+                    );
+                    extensionData = await response.json();
+                    applyFilters(); // Renders cards based on default state (All)
+                } catch (error) {
+                    document.getElementById("statusGrid").innerHTML =
+                        "<p>Error loading status data.</p>";
+                }
+            }
+
+            // --- NEW: MASTER FILTER FUNCTION ---
+            // This function decides which cards to show based on BOTH search and buttons
+            function applyFilters() {
+                const filteredData = extensionData.filter((ext) => {
+                    const safeStatus = ext.status
+                        ? ext.status.toUpperCase()
+                        : "ERROR";
+
+                    // 1. Does it match the text search?
+                    const matchesSearch =
+                        ext.name.toLowerCase().includes(currentSearchTerm) ||
+                        ext.url.toLowerCase().includes(currentSearchTerm);
+
+                    // 2. Does it match the button filter?
+                    const matchesStatus =
+                        currentStatusFilter === "ALL" ||
+                        safeStatus === currentStatusFilter;
+
+                    // Keep it only if it matches BOTH rules
+                    return matchesSearch && matchesStatus;
+                });
+
+                renderCards(filteredData);
+            }
+
+            function renderCards(data) {
+                const grid = document.getElementById("statusGrid");
+                grid.innerHTML = "";
+
+                // Show a message if no results found
+                if (data.length === 0) {
+                    grid.innerHTML =
+                        "<p style='color: var(--text-muted); text-align: center; width: 100%;'>No extensions match your filters.</p>";
+                    return;
+                }
+
+                data.forEach((ext) => {
+                    const card = document.createElement("div");
+                    card.className = "card";
+
+                    const safeStatus = ext.status
+                        ? ext.status.toUpperCase()
+                        : "ERROR";
+
+                    let badgeText = "ERROR";
+                    if (safeStatus === "UP") {
+                        badgeText = `UP (${ext.code})`;
+                    } else if (safeStatus === "DOWN") {
+                        badgeText = `DOWN (${ext.code})`;
+                    } else if (safeStatus === "CLOUDFLARE") {
+                        badgeText = `CLOUDFLARE (${ext.code})`;
+                    }
+
+                    card.innerHTML = `
+                    <div>
+                        <div class="ext-name">${ext.name}</div>
+                        <div class="ext-url">${ext.url.replace("https://", "")}</div>
+                    </div>
+                    <div class="status-badge status-${safeStatus}">${badgeText}</div>
+                `;
+                    grid.appendChild(card);
+                });
+            }
+
+            // --- UPDATED EVENT LISTENERS ---
+
+            // Listen for typing in the search bar
+            document
+                .getElementById("searchInput")
+                .addEventListener("input", (e) => {
+                    currentSearchTerm = e.target.value.toLowerCase();
+                    applyFilters();
+                });
+
+            // Listen for clicks on the filter buttons
+            const filterButtons = document.querySelectorAll(".filter-btn");
+            filterButtons.forEach((btn) => {
+                btn.addEventListener("click", (e) => {
+                    // 1. Remove the "active" highlight from all buttons
+                    filterButtons.forEach((b) => b.classList.remove("active"));
+
+                    // 2. Add the "active" highlight to the specific button clicked
+                    e.target.classList.add("active");
+
+                    // 3. Update our state tracker to match the button's data-filter tag
+                    currentStatusFilter = e.target.getAttribute("data-filter");
+
+                    // 4. Re-run the master filter function
+                    applyFilters();
+                });
+            });
+
+            // Start the app
+            fetchStatus();
+        </script>
+    </body>
+</html>
