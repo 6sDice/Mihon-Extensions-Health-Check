@@ -49,7 +49,7 @@ def check_site_status(site):
             "url": site["url"],
             "status": "UP"
             if final_response.status_code == 200
-            else "CloudFlare"
+            else "CLOUDFLARE"
             if final_response.status_code == 403
             else "DOWN",
             "code": final_response.status_code,
