@@ -13,7 +13,7 @@
                 --accent: #00e676;
                 --up: #4caf50;
                 --down: #f44336;
-                --cloudflare: #f443;
+                --cloudflare: #add8e6;
                 --error: #ff9800;
             }
             body {
@@ -87,7 +87,7 @@
                 border: 1px solid var(--down);
             }
             .status-CLOUDFLARE {
-                background-color: rgba(255, 254, 50, 0.2);
+                background-color: rgba(173, 216, 230, 0.2);
                 color: var(--cloudflare);
                 border: 1px solid var(--cloudflare);
             }
@@ -138,20 +138,24 @@
                     const card = document.createElement("div");
                     card.className = "card";
 
-                    // Determine what text to show on the badge (HTTP code or ERROR)
+                    const safeStatus = ext.status
+                        ? ext.status.toUpperCase()
+                        : "ERROR";
+
+                    // 2. Now check against your safe, all-caps variable
                     const badgeText =
-                        ext.status === "UP"
+                        safeStatus === "UP"
                             ? `UP (${ext.code})`
-                            : ext.status === "DOWN"
+                            : safeStatus === "DOWN"
                               ? `DOWN (${ext.code})`
-                              : ext.status === "CLOUDFLARE"
+                              : safeStatus === "CLOUDFLARE"
                                 ? `CLOUDFLARE (${ext.code})`
                                 : "ERROR";
 
                     card.innerHTML = `
                     <div>
                         <div class="ext-name">${ext.name}</div>
-                        <div class="ext-url">${ext.url.replace("https://", "")}</div>
+                        <a class="ext-url" href="${ext.url}">${ext.url.replace("https://", "")}</a>
                     </div>
                     <div class="status-badge status-${ext.status}">${badgeText}</div>
                 `;
