@@ -249,7 +249,7 @@
                     card.innerHTML = `
                     <div>
                         <div class="ext-name">${ext.name}</div>
-                        <div class="ext-url">${ext.url.replace("https://", "")}</div>
+                        <a href="${ext.url}" class="ext-url">${ext.url.replace("https://", "")}</a>
                     </div>
                     <div class="status-badge status-${safeStatus}">${badgeText}</div>
                 `;
