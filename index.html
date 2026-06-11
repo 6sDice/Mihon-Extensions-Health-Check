@@ -13,6 +13,7 @@
                 --accent: #00e676;
                 --up: #4caf50;
                 --down: #f44336;
+                --cloudflare: #f443;
                 --error: #ff9800;
             }
             body {
@@ -85,6 +86,11 @@
                 color: var(--down);
                 border: 1px solid var(--down);
             }
+            .status-CLOUDFLARE {
+                background-color: rgba(255, 254, 50, 0.2);
+                color: var(--cloudflare);
+                border: 1px solid var(--cloudflare);
+            }
             .status-ERROR {
                 background-color: rgba(255, 152, 0, 0.2);
                 color: var(--error);
@@ -138,7 +144,9 @@
                             ? `UP (${ext.code})`
                             : ext.status === "DOWN"
                               ? `DOWN (${ext.code})`
-                              : "ERROR";
+                              : ext.status === "CLOUDFLARE"
+                                ? `CloudFlare (${ext.code})`
+                                : "ERROR";
 
                     card.innerHTML = `
                     <div>
