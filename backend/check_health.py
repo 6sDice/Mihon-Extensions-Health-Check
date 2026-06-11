@@ -47,7 +47,11 @@ def check_site_status(site):
         return {
             "name": site["name"],
             "url": site["url"],
-            "status": "UP" if final_response.status_code == 200 else "DOWN",
+            "status": "UP"
+            if final_response.status_code == 200
+            else "CloudFlare"
+            if final_response.status_code == 403
+            else "DOWN",
             "code": final_response.status_code,
         }
     except Exception as e:
