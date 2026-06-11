@@ -68,4 +68,3 @@ if __name__ == "__main__":
     result = getStatus(data)
     with open("status.json", "w") as f:
         json.dump(result, f)
-    end = time.time()
